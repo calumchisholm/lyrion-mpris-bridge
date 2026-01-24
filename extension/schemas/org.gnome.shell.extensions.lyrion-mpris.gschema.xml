@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.lyrion-mpris-bridge" path="/org/gnome/shell/extensions/lyrion-mpris-bridge/">
+    <key name="server-address" type="s">
+      <default>'127.0.0.1'</default>
+      <summary>Logitech Media Server address</summary>
+      <description>Hostname or IP address where your Lyrion (LMS) is reachable.</description>
+    </key>
+    <key name="server-port" type="i">
+      <default>9000</default>
+      <summary>Logitech Media Server port</summary>
+      <description>HTTP port of the LMS web interface.</description>
+    </key>
+    <key name="server-scheme" type="s">
+      <default>'http'</default>
+      <summary>Protocol for connecting to LMS</summary>
+      <description>Either http or https depending on your server configuration.</description>
+    </key>
+    <key name="server-username" type="s">
+      <default>''</default>
+      <summary>Logitech Media Server username</summary>
+      <description>Optional username for LMS HTTP authentication.</description>
+    </key>
+    <key name="server-password" type="s">
+      <default>''</default>
+      <summary>Logitech Media Server password</summary>
+      <description>Optional password for LMS HTTP authentication.</description>
+    </key>
+    <key name="player-id" type="s">
+      <default>''</default>
+      <summary>Player MAC/ID</summary>
+      <description>The player ID reported by LMS for the client to watch.</description>
+    </key>
+    <key name="poll-interval" type="i">
+      <default>5</default>
+      <summary>Polling interval seconds</summary>
+      <description>How often to refresh now playing information.</description>
+    </key>
+    <key name="shuffle-mode" type="i">
+      <default>1</default>
+      <summary>Shuffle mode</summary>
+      <description>Shuffle mode to use when enabling shuffle (1 = song, 2 = album).</description>
+    </key>
+    <key name="mpris-openuri-action" type="s">
+      <default>'lms'</default>
+      <summary>MPRIS OpenUri action</summary>
+      <description>What to do when a client calls OpenUri: open LMS now playing, open the provided URI, or use the provided URI with LMS fallback.</description>
+    </key>
+    <key name="debug-logging" type="b">
+      <default>false</default>
+      <summary>Enable debug logging</summary>
+      <description>Log extra details for LMS requests and MPRIS interactions.</description>
+    </key>
+    <key name="allow-artwork-credentials" type="b">
+      <default>false</default>
+      <summary>Allow artwork URLs with credentials</summary>
+      <description>When enabled, MPRIS artwork URLs may include LMS credentials so clients can fetch protected artwork.</description>
+    </key>
+  </schema>
+</schemalist>

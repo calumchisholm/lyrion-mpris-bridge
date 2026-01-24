@@ -1,0 +1,10 @@
+{
+  "uuid": "lyrion-mpris-bridge@calumchisholm.github.io",
+  "name": "Lyrion / MPRIS Bridge",
+  "description": "Lyrion Music Server (Logitech / Squeezebox) <--> MPRIS bridge, enabling GNOME media control integration.",
+  "shell-version": [
+    "49"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.lyrion-mpris-bridge",
+  "url": "https://github.com/calumchisholm/lyrion-mpris-bridge"
+}
