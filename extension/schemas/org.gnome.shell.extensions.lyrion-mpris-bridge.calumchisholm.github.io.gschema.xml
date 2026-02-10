@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.lyrion-mpris-bridge" path="/org/gnome/shell/extensions/lyrion-mpris-bridge/">
+  <schema id="org.gnome.shell.extensions.lyrion-mpris-bridge.calumchisholm.github.io" path="/org/gnome/shell/extensions/lyrion-mpris-bridge/calumchisholm/github/io/">
     <key name="server-address" type="s">
       <default>'127.0.0.1'</default>
       <summary>Logitech Media Server address</summary>
@@ -46,9 +46,9 @@
       <summary>MPRIS OpenUri action</summary>
       <description>What to do when a client calls OpenUri: open LMS now playing, open the provided URI, or use the provided URI with LMS fallback.</description>
     </key>
-    <key name="debug-logging" type="b">
+    <key name="verbose-logging" type="b">
       <default>false</default>
-      <summary>Enable debug logging</summary>
+      <summary>Enable verbose logging</summary>
       <description>Log extra details for LMS requests and MPRIS interactions.</description>
     </key>
     <key name="allow-artwork-credentials" type="b">

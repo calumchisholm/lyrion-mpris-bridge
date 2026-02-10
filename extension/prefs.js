@@ -158,10 +158,10 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
     };
 
     const applyPlayerOptions = options => {
+      updatingPlayer = true;
       playerOptions = options;
       playerRow.model = Gtk.StringList.new(options.map(option => option.label));
       playerRow.sensitive = options.length > 1;
-      updatingPlayer = true;
       const selectedId = settings.get_string('player-id');
       const index = options.findIndex(option => option.id === selectedId);
       playerRow.selected = index >= 0 ? index : 0;
@@ -286,18 +286,18 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
     const groupDiagnostics = new Adw.PreferencesGroup({title: _('Diagnostics')});
     page.add(groupDiagnostics);
 
-    const debugRow = new Adw.ActionRow({
-      title: _('Debug logging'),
+    const verboseRow = new Adw.ActionRow({
+      title: _('Verbose logging'),
       subtitle: _('Log extra LMS and MPRIS details'),
     });
-    const debugSwitch = new Gtk.Switch({
-      active: settings.get_boolean('debug-logging'),
+    const verboseSwitch = new Gtk.Switch({
+      active: settings.get_boolean('verbose-logging'),
       valign: Gtk.Align.CENTER,
     });
-    settings.bind('debug-logging', debugSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
-    debugRow.add_suffix(debugSwitch);
-    debugRow.activatable_widget = debugSwitch;
-    groupDiagnostics.add(debugRow);
+    settings.bind('verbose-logging', verboseSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+    verboseRow.add_suffix(verboseSwitch);
+    verboseRow.activatable_widget = verboseSwitch;
+    groupDiagnostics.add(verboseRow);
   }
 
   _createEntryRow({title, subtitle, settings, key, entryProps = {}}) {

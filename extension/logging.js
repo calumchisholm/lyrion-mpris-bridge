@@ -1,17 +1,27 @@
 const LOG_PREFIX = 'LyrionMPRIS';
-let debugEnabled = false;
+let verboseEnabled = false;
 
-export const setDebugEnabled = enabled => {
-  debugEnabled = enabled === true;
+const formatMessage = (level, message) => `${LOG_PREFIX}(${level}): ${message}`;
+
+export const setVerboseEnabled = enabled => {
+  verboseEnabled = enabled === true;
 };
 
 export const logDebug = message => {
-  if (!debugEnabled) {
+  if (!verboseEnabled) {
     return;
   }
-  log(`${LOG_PREFIX}(debug): ${message}`);
+  console.log(formatMessage('debug', message));
+};
+
+export const logInfo = message => {
+  console.log(formatMessage('info', message));
+};
+
+export const logWarn = message => {
+  console.warn(formatMessage('warn', message));
 };
 
 export const logError = message => {
-  log(`${LOG_PREFIX}(error): ${message}`);
+  console.error(formatMessage('error', message));
 };

@@ -2,7 +2,7 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 
 import * as Constants from './constants.js';
-import {logDebug} from './logging.js';
+import {logInfo, logDebug} from './logging.js';
 import {MprisController, MPRIS_OBJECT_PATH} from './mprisController.js';
 
 const MPRIS_PLAYER_INTERFACE = 'org.mpris.MediaPlayer2.Player';
@@ -195,39 +195,39 @@ export class MprisPlayerController extends MprisController {
   // https://specifications.freedesktop.org/mpris/latest/Player_Interface.html
 
   PlayPause() {
-    logDebug('MPRIS PlayPause');
+    logInfo('MPRIS PlayPause');
     this._playPause?.();
   }
   Play() {
-    logDebug('MPRIS Play');
+    logInfo('MPRIS Play');
     this._play?.();
   }
   Pause() {
-    logDebug('MPRIS Pause');
+    logInfo('MPRIS Pause');
     this._pause?.();
   }
   Stop() {
-    logDebug('MPRIS Stop');
+    logInfo('MPRIS Stop');
     this._stop?.();
   }
   Next() {
-    logDebug('MPRIS Next');
+    logInfo('MPRIS Next');
     this._next?.();
   }
   Previous() {
-    logDebug('MPRIS Previous');
+    logInfo('MPRIS Previous');
     this._previous?.();
   }
   Seek(offset) {
-    logDebug(`MPRIS Seek offset=${offset}`);
+    logInfo(`MPRIS Seek offset=${offset}`);
     this._seek?.(offset);
   }
   SetPosition(trackId, position) {
-    logDebug(`MPRIS SetPosition trackId=${trackId} position=${position}`);
+    logInfo(`MPRIS SetPosition trackId=${trackId} position=${position}`);
     this._setPosition?.(trackId, position);
   }
   OpenUri(uri) {
-    logDebug(`MPRIS OpenUri uri=${uri}`);
+    logInfo(`MPRIS OpenUri uri=${uri}`);
     this._openUri?.(uri);
   }
 
