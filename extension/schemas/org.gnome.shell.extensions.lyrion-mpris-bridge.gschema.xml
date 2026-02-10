@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.lyrion-mpris-bridge.calumchisholm.github.io" path="/org/gnome/shell/extensions/lyrion-mpris-bridge/calumchisholm/github/io/">
+  <schema id="org.gnome.shell.extensions.lyrion-mpris-bridge" path="/org/gnome/shell/extensions/lyrion-mpris-bridge/">
     <key name="server-address" type="s">
       <default>'127.0.0.1'</default>
       <summary>Logitech Media Server address</summary>
