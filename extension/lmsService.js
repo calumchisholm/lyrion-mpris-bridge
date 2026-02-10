@@ -1,7 +1,7 @@
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
-import {logDebug, logError, setDebugEnabled} from './logging.js';
+import {logInfo, logDebug, logError, setVerboseEnabled} from './logging.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Constants from './constants.js';
@@ -62,8 +62,9 @@ export class LmsService {
     this._pollPending = false;
     this._currentMprisTrackId = null;
     this._currentPositionSeconds = null;
-    this._debugLogging = this._settings.get_boolean('debug-logging');
-    setDebugEnabled(this._debugLogging);
+    this._verboseLogging = this._settings.get_boolean('verbose-logging');
+    setVerboseEnabled(this._verboseLogging);
+    logInfo('Lyrion MPRIS bridge starting');
     this._lms = new LmsApi({
       session: this._session,
     });
@@ -96,11 +97,11 @@ export class LmsService {
       this._settings.connect('changed::poll-interval', () => this._restartPolling()),
     ];
     this._settingsChangedIds.push(
-      this._settings.connect('changed::debug-logging', () => {
-        this._debugLogging = this._settings.get_boolean('debug-logging');
-        setDebugEnabled(this._debugLogging);
-        if (this._debugLogging) {
-          logDebug('debug logging enabled');
+      this._settings.connect('changed::verbose-logging', () => {
+        this._verboseLogging = this._settings.get_boolean('verbose-logging');
+        setVerboseEnabled(this._verboseLogging);
+        if (this._verboseLogging) {
+          logInfo('verbose logging enabled');
         }
       })
     );
@@ -122,7 +123,7 @@ export class LmsService {
       this._settings.disconnect(id);
     }
     this._settingsChangedIds = [];
-    setDebugEnabled(false);
+    setVerboseEnabled(false);
   }
 
   _restartPolling() {
@@ -287,7 +288,7 @@ export class LmsService {
 
   _setShuffle(value) {
     const enabled = !!value;
-    logDebug(`LMS set shuffle=${enabled}`);
+    logInfo(`LMS set shuffle=${enabled}`);
     const preferredMode = this._settings.get_int('shuffle-mode');
     const shuffleMode = preferredMode === Constants.LMS_SHUFFLE_BY_ALBUM ? Constants.LMS_SHUFFLE_BY_ALBUM : Constants.LMS_SHUFFLE_BY_SONG;
     sendPlayerCommandFromSettings(this._lms, this._settings, ['playlist', 'shuffle', enabled ? shuffleMode : Constants.LMS_SHUFFLE_OFF]);
@@ -300,7 +301,7 @@ export class LmsService {
     } else if (value === Constants.MPRIS_LOOP_PLAYLIST) {
       mode = Constants.LMS_REPEAT_PLAYLIST;
     }
-    logDebug(`LMS set repeat=${mode}`);
+    logInfo(`LMS set repeat=${mode}`);
     sendPlayerCommandFromSettings(this._lms, this._settings, ['playlist', 'repeat', mode]);
   }
 
@@ -309,7 +310,7 @@ export class LmsService {
       return;
     }
     const percent = Math.max(0, Math.min(100, Math.round(value * 100)));
-    logDebug(`LMS set volume=${percent}`);
+    logInfo(`LMS set volume=${percent}`);
     sendPlayerCommandFromSettings(this._lms, this._settings, ['mixer', 'volume', percent]);
   }
 
@@ -326,7 +327,7 @@ export class LmsService {
     if (!seconds) {
       return;
     }
-    logDebug(`LMS seek relative seconds=${seconds}`);
+    logInfo(`LMS seek relative seconds=${seconds}`);
     const formatted = `${seconds >= 0 ? '+' : ''}${seconds}`;
     sendPlayerCommandFromSettings(this._lms, this._settings, ['time', formatted]);
     const nextPosition = Number.isFinite(this._currentPositionSeconds)
@@ -352,7 +353,7 @@ export class LmsService {
       return;
     }
     const seconds = Math.max(0, Math.floor(microsecondsToSeconds(position)));
-    logDebug(`LMS set position seconds=${seconds}`);
+    logInfo(`LMS set position seconds=${seconds}`);
     sendPlayerCommandFromSettings(this._lms, this._settings, ['time', seconds]);
     if (Number.isFinite(seconds)) {
       this._currentPositionSeconds = seconds;
@@ -368,7 +369,7 @@ export class LmsService {
     // OpenUri handling is disabled for now; GNOME Shell doesn't call it.
     // const behavior = this._settings.get_string('mpris-openuri-action');
     // const trimmedUri = `${uri || ''}`.trim();
-    // this._logDebug(`OpenUri behavior=${behavior} uri=${trimmedUri}`);
+    // logDebug(`OpenUri behavior=${behavior} uri=${trimmedUri}`);
     // if (behavior === 'provided') {
     //   if (trimmedUri)
     //     this._openUri(trimmedUri);

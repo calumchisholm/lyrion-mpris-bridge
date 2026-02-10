@@ -23,15 +23,12 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
 cp -R "${EXT_DIR}/." "${TMP_DIR}/"
-rm -f "${TMP_DIR}/schemas/gschemas.compiled"
-if [[ -d "${TMP_DIR}/schemas" ]]; then
-  glib-compile-schemas "${TMP_DIR}/schemas"
-fi
 
 ZIP_PATH="${DIST_DIR}/${UUID}.zip"
+rm -f "${ZIP_PATH}"
 (
   cd "${TMP_DIR}"
-  zip -r "${ZIP_PATH}" .
+  zip -r "${ZIP_PATH}" . -x "schemas/gschemas.compiled"
 )
 
 echo "Wrote ${ZIP_PATH}"

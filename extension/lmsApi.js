@@ -2,7 +2,7 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 import * as Constants from './constants.js';
-import {logDebug, logError} from './logging.js';
+import {logDebug, logWarn, logError} from './logging.js';
 
 export class LmsApi {
   constructor({session} = {}) {
@@ -143,7 +143,7 @@ export class LmsApi {
     const {bytes, status} = await this._sendJsonBody(url, body, auth);
 
     if (status !== Soup.Status.OK) {
-      logError(`LMS command HTTP ${status} for ${logUrl}`);
+      logWarn(`LMS command HTTP ${status} for ${logUrl}`);
     }
     const text = new TextDecoder().decode(bytes.get_data());
     if (!text) {
@@ -160,7 +160,7 @@ export class LmsApi {
         logDebug('LMS command ok');
       }
     } catch (e) {
-      logError(`LMS command response parse error: ${e}`);
+      logWarn(`LMS command response parse error: ${e}`);
     }
   }
 
