@@ -81,13 +81,13 @@ export class MprisPlayerController extends MprisController {
     this._volumeHandler = volume;
     this._rateHandler = rate;
 
-    this._playbackStatus = Constants.MPRIS_PLAYBACK_STOPPED;
+    this._playbackStatus = Constants.MprisPlaybackStatus.STOPPED;
     this._metadataVariant = new GLib.Variant('a{sv}', {});
     this._position = 0;
     this._positionUpdatedAtUs = 0;
     this._canControl = false;
     this._canSeek = false;
-    this._loopStatus = Constants.MPRIS_LOOP_NONE;
+    this._loopStatus = Constants.MprisLoopStatus.NONE;
     this._shuffle = false;
     this._rate = 1.0;
     this._volume = 1.0;
@@ -232,7 +232,7 @@ export class MprisPlayerController extends MprisController {
   }
 
   _calculatePosition(nowUs, status) {
-    if (status !== Constants.MPRIS_PLAYBACK_PLAYING) {
+    if (status !== Constants.MprisPlaybackStatus.PLAYING) {
       return this._position;
     }
     if (!Number.isFinite(this._positionUpdatedAtUs) || this._positionUpdatedAtUs <= 0) {
@@ -271,9 +271,9 @@ export class MprisPlayerController extends MprisController {
     return this._loopStatus;
   }
   set LoopStatus(value) {
-    if (value !== Constants.MPRIS_LOOP_NONE &&
-        value !== Constants.MPRIS_LOOP_TRACK &&
-        value !== Constants.MPRIS_LOOP_PLAYLIST) {
+    if (value !== Constants.MprisLoopStatus.NONE &&
+        value !== Constants.MprisLoopStatus.TRACK &&
+        value !== Constants.MprisLoopStatus.PLAYLIST) {
       return;
     }
     this._loopStatus = value;

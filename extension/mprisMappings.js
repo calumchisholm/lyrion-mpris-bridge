@@ -9,23 +9,23 @@ export const microsecondsToSeconds = microseconds => microseconds / MICROSECONDS
 
 export const getPlaybackStatusFromLmsPlayerState = playbackMode => {
   switch (playbackMode) {
-    case Constants.LMS_PLAYER_STATE_PLAY:
-      return Constants.MPRIS_PLAYBACK_PLAYING;
-    case Constants.LMS_PLAYER_STATE_PAUSE:
-      return Constants.MPRIS_PLAYBACK_PAUSED;
+    case Constants.LmsPlayerState.PLAY:
+      return Constants.MprisPlaybackStatus.PLAYING;
+    case Constants.LmsPlayerState.PAUSE:
+      return Constants.MprisPlaybackStatus.PAUSED;
     default:
-      return Constants.MPRIS_PLAYBACK_STOPPED;
+      return Constants.MprisPlaybackStatus.STOPPED;
   }
 };
 
 export const getLoopStatusFromLmsRepeatMode = repeatMode => {
   switch (repeatMode) {
-    case Constants.LMS_REPEAT_TRACK:
-      return Constants.MPRIS_LOOP_TRACK;
-    case Constants.LMS_REPEAT_PLAYLIST:
-      return Constants.MPRIS_LOOP_PLAYLIST;
+    case Constants.LmsRepeatMode.TRACK:
+      return Constants.MprisLoopStatus.TRACK;
+    case Constants.LmsRepeatMode.PLAYLIST:
+      return Constants.MprisLoopStatus.PLAYLIST;
     default:
-      return Constants.MPRIS_LOOP_NONE;
+      return Constants.MprisLoopStatus.NONE;
   }
 };
 

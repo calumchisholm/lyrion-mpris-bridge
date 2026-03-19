@@ -1,25 +1,56 @@
 // https://lyrion.org/reference/cli/playlist/#mode
-export const LMS_PLAYER_STATE_PLAY = 'play';
-export const LMS_PLAYER_STATE_STOP = 'stop';
-export const LMS_PLAYER_STATE_PAUSE = 'pause';
+export const LmsPlayerState = Object.freeze({
+  PLAY: 'play',
+  STOP: 'stop',
+  PAUSE: 'pause',
+  MUTE: 'mute',
+});
 
 // https://lyrion.org/reference/cli/playlist/#playlist-shuffle
-export const LMS_SHUFFLE_OFF = 0;
-export const LMS_SHUFFLE_BY_SONG = 1;
-export const LMS_SHUFFLE_BY_ALBUM = 2;
+export const LmsShuffleMode = Object.freeze({
+  OFF: 0,
+  BY_SONG: 1,
+  BY_ALBUM: 2,
+});
 
 // https://lyrion.org/reference/cli/playlist/#playlist-repeat
-export const LMS_REPEAT_OFF = 0;
-export const LMS_REPEAT_TRACK = 1;
-export const LMS_REPEAT_PLAYLIST = 2;
+export const LmsRepeatMode = Object.freeze({
+  OFF: 0,
+  TRACK: 1,
+  PLAYLIST: 2,
+});
 
 
 // https://specifications.freedesktop.org/mpris/latest/Player_Interface.html#Enum:Loop_Status
-export const MPRIS_LOOP_NONE = 'None';
-export const MPRIS_LOOP_TRACK = 'Track';
-export const MPRIS_LOOP_PLAYLIST = 'Playlist';
+export const MprisLoopStatus = Object.freeze({
+  NONE: 'None',
+  TRACK: 'Track',
+  PLAYLIST: 'Playlist',
+});
 
 // https://specifications.freedesktop.org/mpris/latest/Player_Interface.html#Enum:Playback_Status
-export const MPRIS_PLAYBACK_PLAYING = 'Playing';
-export const MPRIS_PLAYBACK_PAUSED = 'Paused';
-export const MPRIS_PLAYBACK_STOPPED = 'Stopped';
+export const MprisPlaybackStatus = Object.freeze({
+  PLAYING: 'Playing',
+  PAUSED: 'Paused',
+  STOPPED: 'Stopped',
+});
+
+
+
+export const ServerScheme = Object.freeze({
+  HTTP: 'http',
+  HTTPS: 'https',
+});
+
+export const SettingsKey = Object.freeze({
+  SERVER_SCHEME: 'server-scheme',
+  SERVER_ADDRESS: 'server-address',
+  SERVER_PORT: 'server-port',
+  SERVER_USERNAME: 'server-username',
+  SERVER_PASSWORD: 'server-password',
+  PLAYER_ID: 'player-id',
+  POLL_INTERVAL: 'poll-interval',
+  SHUFFLE_MODE: 'shuffle-mode',
+  ALLOW_ARTWORK_CREDENTIALS: 'allow-artwork-credentials',
+  VERBOSE_LOGGING: 'verbose-logging',
+});

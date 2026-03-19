@@ -4,6 +4,46 @@ import Soup from 'gi://Soup';
 import * as Constants from './constants.js';
 import {logDebug, logWarn, logError} from './logging.js';
 
+
+const PLAYER_NAME_FIELDS = Object.freeze([
+  'player_name',
+  'playername',
+  'player name',
+]);
+const DURATION_FIELDS = Object.freeze([
+  'duration',
+  'playlist_duration',
+  'playlistDuration',
+  'playlist duration',
+]);
+const SHUFFLE_MODE_FIELDS = Object.freeze([
+  'playlist_shuffle',
+  'playlistShuffle',
+  'playlist shuffle',
+]);
+const REPEAT_MODE_FIELDS = Object.freeze([
+  'playlist_repeat',
+  'playlistRepeat',
+  'playlist repeat',
+]);
+const ARTWORK_ID_FIELDS = Object.freeze([
+  'artwork_track_id',
+  'coverid',
+]);
+const PLAYERS_REQUEST = Object.freeze(['players', 0, 200]);
+
+const getFirstFieldValue = (fields, ...sources) => {
+  for (const source of sources) {
+    for (const field of fields) {
+      const value = source?.[field];
+      if (value !== undefined && value !== null) {
+        return value;
+      }
+    }
+  }
+  return null;
+};
+
 export class LmsApi {
   constructor({session} = {}) {
     this._session = session;
@@ -171,7 +211,7 @@ export class LmsApi {
     const body = JSON.stringify({
       id: 1,
       method: 'slim.request',
-      params: ['', ['players', 0, 200]],
+      params: ['', PLAYERS_REQUEST],
     });
 
     const {bytes, status} = await this._sendJsonBody(url, body, auth);
@@ -204,7 +244,7 @@ export class LmsApi {
   }
 
   getPlayerName(result) {
-    const candidate = result?.player_name ?? result?.playername ?? result?.['player name'];
+    const candidate = getFirstFieldValue(PLAYER_NAME_FIELDS, result);
     if (typeof candidate !== 'string') {
       return null;
     }
@@ -225,13 +265,7 @@ export class LmsApi {
 
   getDurationSeconds(track, result, remoteMeta) {
     // LMS field names vary by endpoint/version; try common variants.
-    const candidate = track?.duration
-      ?? result?.duration
-      ?? remoteMeta?.duration
-      ?? result?.playlist_duration
-      ?? result?.playlistDuration
-      ?? result?.['playlist duration']
-      ?? null;
+    const candidate = getFirstFieldValue(DURATION_FIELDS, track, result, remoteMeta);
     const durationSeconds = this._parseNumber(candidate);
 
     // Unknown or invalid durations should remain unset.
@@ -249,31 +283,35 @@ export class LmsApi {
 
   getShuffleMode(result) {
     // LMS reports shuffle as numeric modes (0/1/2).
-    const raw = result?.playlist_shuffle ?? result?.playlistShuffle ?? result?.['playlist shuffle'];
+    const raw = getFirstFieldValue(SHUFFLE_MODE_FIELDS, result);
     const parsed = Number(raw);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
-    return Constants.LMS_SHUFFLE_OFF;
+    return Constants.LmsShuffleMode.OFF;
   }
 
   getRepeatMode(result) {
     // LMS reports repeat as numeric modes (0/1/2).
-    const raw = result?.playlist_repeat ?? result?.playlistRepeat ?? result?.['playlist repeat'];
+    const raw = getFirstFieldValue(REPEAT_MODE_FIELDS, result);
     const parsed = Number(raw);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
-    return Constants.LMS_REPEAT_OFF;
+    return Constants.LmsRepeatMode.OFF;
   }
 
-  getVolumePercent(result) {
-    const raw = result?.mixer?.volume ?? result?.['mixer volume'] ?? result?.volume;
-    const parsed = Number(raw);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-    return null;
+  _getRawVolume(result) {
+    return result?.mixer?.volume ?? result?.['mixer volume'] ?? result?.volume ?? null;
+  }
+
+  getParsedVolume(result) {
+    return this._parseNumber(this._getRawVolume(result));
+  }
+
+  getMuteState(result) {
+    const volume = this.getParsedVolume(result);
+    return volume === null ? null : volume < 0;
   }
 
   _getArtworkUrl(
@@ -335,15 +373,16 @@ export class LmsApi {
 
   _getArtworkId(track, result, remoteMeta) {
     // Some LMS responses use 0/"0" to mean "no artwork".
-    const candidates = [
-      track?.artwork_track_id,
-      result?.artwork_track_id,
-      remoteMeta?.artwork_track_id,
-      track?.coverid,
-      result?.coverid,
-      remoteMeta?.coverid,
-    ];
-    return candidates.find(id => id !== undefined && id !== null && id !== 0 && id !== '0') ?? null;
+    for (const source of [track, result, remoteMeta]) {
+      for (const field of ARTWORK_ID_FIELDS) {
+        const artworkId = source?.[field];
+        if (artworkId === undefined || artworkId === null || artworkId === 0 || artworkId === '0') {
+          continue;
+        }
+        return artworkId;
+      }
+    }
+    return null;
   }
 
   _isLikelyStreamArtworkId(artworkId) {

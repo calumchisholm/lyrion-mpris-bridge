@@ -25,7 +25,7 @@ Note: Although this extension exposes many of the features described in the MPRI
 - **Protocol**, **Server address**, **Username**, **Password**, and **Port**: Where LMS is reachable (defaults to `http://127.0.0.1:9000`). Username and Password fields are optional, and may not be required for your LMS instance.
 - **Player**: Select the LMS client to monitor. Only players currently connected to your LMS server will be listed.
 - **Poll interval**: Seconds between refreshes (minimum 3s).
-- **Shuffle mode**: Randomise on a per-song or per-album basis when shuffling is enabled.
+- **Shuffle mode**: Randomise on a per-track or per-album basis when shuffling is enabled.
 - **Allow artwork URLs with credentials**: Lets MPRIS clients fetch artwork from a password-secured LMS server.
 
 
@@ -57,6 +57,18 @@ Build a zip for distribution:
 ```
 
 The archive is written to `./dist/`.
+
+
+## Linting
+
+Install ESLint locally, then run it against the extension sources:
+
+```bash
+npm install --save-dev eslint
+npx eslint extension --max-warnings 0
+```
+
+The repo-level [`eslint.config.js`](./eslint.config.js) is picked up automatically.
 
 
 ## Notes

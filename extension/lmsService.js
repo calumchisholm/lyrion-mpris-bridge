@@ -17,8 +17,8 @@ import {
 } from './mprisMappings.js';
 
 const getAuthFromSettings = settings => {
-  const username = settings.get_string('server-username');
-  const password = settings.get_string('server-password');
+  const username = settings.get_string(Constants.SettingsKey.SERVER_USERNAME);
+  const password = settings.get_string(Constants.SettingsKey.SERVER_PASSWORD);
   if (!username && !password) {
     return null;
   }
@@ -26,10 +26,10 @@ const getAuthFromSettings = settings => {
 };
 
 const getConnectionInfo = settings => ({
-  serverScheme: settings.get_string('server-scheme'),
-  serverAddress: settings.get_string('server-address'),
-  serverPort: settings.get_int('server-port'),
-  playerId: settings.get_string('player-id'),
+  serverScheme: settings.get_string(Constants.SettingsKey.SERVER_SCHEME),
+  serverAddress: settings.get_string(Constants.SettingsKey.SERVER_ADDRESS),
+  serverPort: settings.get_int(Constants.SettingsKey.SERVER_PORT),
+  playerId: settings.get_string(Constants.SettingsKey.PLAYER_ID),
   auth: getAuthFromSettings(settings),
 });
 
@@ -49,7 +49,7 @@ const sendPlayerCommandFromSettings = (lmsApi, settings, commandArray) => {
 };
 
 // LMS status tags: a=artist, l=album, c=cover id, o=track URL, J=artwork URL, t=title, j=artwork track id, d=duration.
-const DEFAULT_STATUS_REQUEST = ['status', '-', 1, 'tags:alcoJtjd'];
+const DEFAULT_STATUS_REQUEST = Object.freeze(['status', '-', 1, 'tags:alcoJtjd']);
 const DEFAULT_MPRIS_IDENTITY = 'Lyrion Now Playing';
 
 export class LmsService {
@@ -62,7 +62,7 @@ export class LmsService {
     this._pollPending = false;
     this._currentMprisTrackId = null;
     this._currentPositionSeconds = null;
-    this._verboseLogging = this._settings.get_boolean('verbose-logging');
+    this._verboseLogging = this._settings.get_boolean(Constants.SettingsKey.VERBOSE_LOGGING);
     setVerboseEnabled(this._verboseLogging);
     logInfo('Lyrion MPRIS bridge starting');
     this._lms = new LmsApi({
@@ -129,7 +129,7 @@ export class LmsService {
   _restartPolling() {
     this._stopPolling();
     this._refresh();
-    const interval = this._settings.get_int('poll-interval');
+    const interval = this._settings.get_int(Constants.SettingsKey.POLL_INTERVAL);
     this._pollId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, interval, () => {
       this._refresh();
       return GLib.SOURCE_CONTINUE;
@@ -163,10 +163,10 @@ export class LmsService {
       });
       this._mpris?.updateIdentity(DEFAULT_MPRIS_IDENTITY);
       this._mpris?.updateState({
-        playbackStatus: Constants.MPRIS_PLAYBACK_STOPPED,
+        playbackStatus: Constants.MprisPlaybackStatus.STOPPED,
         metadataVariant,
         position: 0,
-        loopStatus: Constants.MPRIS_LOOP_NONE,
+        loopStatus: Constants.MprisLoopStatus.NONE,
         shuffle: false,
         rate: 1.0,
         volume: 1.0,
@@ -202,10 +202,10 @@ export class LmsService {
         'mpris:trackid': new GLib.Variant('o', '/org/mpris/MediaPlayer2/Track/NoTrack'),
       });
       this._mpris?.updateState({
-        playbackStatus: Constants.MPRIS_PLAYBACK_STOPPED,
+        playbackStatus: Constants.MprisPlaybackStatus.STOPPED,
         metadataVariant,
         position: 0,
-        loopStatus: Constants.MPRIS_LOOP_NONE,
+        loopStatus: Constants.MprisLoopStatus.NONE,
         shuffle: false,
         rate: 1.0,
         volume: 1.0,
@@ -235,7 +235,7 @@ export class LmsService {
     const title = track?.title || remoteMeta?.title || result?.title || _('Unknown track');
     const album = track?.album || remoteMeta?.album || result?.album;
     const trackId = track?.id ?? result?.id ?? null;
-    const allowArtworkCredentials = this._settings.get_boolean('allow-artwork-credentials');
+    const allowArtworkCredentials = this._settings.get_boolean(Constants.SettingsKey.ALLOW_ARTWORK_CREDENTIALS);
     const artworkConnectionInfo = {
       ...connectionInfo,
       auth: allowArtworkCredentials ? connectionInfo?.auth : null,
@@ -263,10 +263,10 @@ export class LmsService {
       : 0;
     const playbackStatus = getPlaybackStatusFromLmsPlayerState(result?.mode);
     const loopStatus = getLoopStatusFromLmsRepeatMode(this._lms.getRepeatMode(result));
-    const shuffle = this._lms.getShuffleMode(result) !== Constants.LMS_SHUFFLE_OFF;
-    const volume = normalizeVolumePercent(this._lms.getVolumePercent(result));
+    const shuffle = this._lms.getShuffleMode(result) !== Constants.LmsShuffleMode.OFF;
+    const volume = normalizeVolumePercent(this._lms.getParsedVolume(result));
     const canSeek = Number.isFinite(durationSeconds) && durationSeconds > 0;
-    if (playbackStatus === Constants.MPRIS_PLAYBACK_PLAYING && canSeek && position <= 0) {
+    if (playbackStatus === Constants.MprisPlaybackStatus.PLAYING && canSeek && position <= 0) {
       // Some clients ignore zero position while playing; bump to a tiny non-zero value.
       position = 1;
     }
@@ -289,17 +289,19 @@ export class LmsService {
   _setShuffle(value) {
     const enabled = !!value;
     logInfo(`LMS set shuffle=${enabled}`);
-    const preferredMode = this._settings.get_int('shuffle-mode');
-    const shuffleMode = preferredMode === Constants.LMS_SHUFFLE_BY_ALBUM ? Constants.LMS_SHUFFLE_BY_ALBUM : Constants.LMS_SHUFFLE_BY_SONG;
-    sendPlayerCommandFromSettings(this._lms, this._settings, ['playlist', 'shuffle', enabled ? shuffleMode : Constants.LMS_SHUFFLE_OFF]);
+    const preferredMode = this._settings.get_int(Constants.SettingsKey.SHUFFLE_MODE);
+    const shuffleMode = preferredMode === Constants.LmsShuffleMode.BY_ALBUM
+      ? Constants.LmsShuffleMode.BY_ALBUM
+      : Constants.LmsShuffleMode.BY_SONG;
+    sendPlayerCommandFromSettings(this._lms, this._settings, ['playlist', 'shuffle', enabled ? shuffleMode : Constants.LmsShuffleMode.OFF]);
   }
 
   _setLoopStatus(value) {
-    let mode = Constants.LMS_REPEAT_OFF;
-    if (value === Constants.MPRIS_LOOP_TRACK) {
-      mode = Constants.LMS_REPEAT_TRACK;
-    } else if (value === Constants.MPRIS_LOOP_PLAYLIST) {
-      mode = Constants.LMS_REPEAT_PLAYLIST;
+    let mode = Constants.LmsRepeatMode.OFF;
+    if (value === Constants.MprisLoopStatus.TRACK) {
+      mode = Constants.LmsRepeatMode.TRACK;
+    } else if (value === Constants.MprisLoopStatus.PLAYLIST) {
+      mode = Constants.LmsRepeatMode.PLAYLIST;
     }
     logInfo(`LMS set repeat=${mode}`);
     sendPlayerCommandFromSettings(this._lms, this._settings, ['playlist', 'repeat', mode]);
@@ -401,7 +403,7 @@ export class LmsService {
   }
 
   async _togglePlayPause() {
-    const playerId = this._settings.get_string('player-id');
+    const playerId = this._settings.get_string(Constants.SettingsKey.PLAYER_ID);
     if (!playerId) {
       return;
     }

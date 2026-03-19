@@ -17,28 +17,28 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
     const groupConnection = new Adw.PreferencesGroup({title: _('Lyrion Server')});
     page.add(groupConnection);
 
-    const schemeOptions = [
-      {id: 'http', label: _('HTTP')},
-      {id: 'https', label: _('HTTPS')},
-    ];
+    const schemeOptions = Object.freeze([
+      {id: Constants.ServerScheme.HTTP, label: _('HTTP')},
+      {id: Constants.ServerScheme.HTTPS, label: _('HTTPS')},
+    ]);
     const schemeRow = new Adw.ComboRow({
       title: _('Protocol'),
       subtitle: _('http or https'),
       model: Gtk.StringList.new(schemeOptions.map(option => option.label)),
     });
     const updateSchemeSelection = () => {
-      const current = settings.get_string('server-scheme');
+      const current = settings.get_string(Constants.SettingsKey.SERVER_SCHEME);
       const index = schemeOptions.findIndex(option => option.id === current);
       schemeRow.selected = index >= 0 ? index : 0;
       if (index < 0) {
-        settings.set_string('server-scheme', schemeOptions[0].id);
+        settings.set_string(Constants.SettingsKey.SERVER_SCHEME, schemeOptions[0].id);
       }
     };
     updateSchemeSelection();
-    settings.connect('changed::server-scheme', updateSchemeSelection);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_SCHEME}`, updateSchemeSelection);
     schemeRow.connect('notify::selected', () => {
       const option = schemeOptions[schemeRow.selected] || schemeOptions[0];
-      settings.set_string('server-scheme', option.id);
+      settings.set_string(Constants.SettingsKey.SERVER_SCHEME, option.id);
     });
     groupConnection.add(schemeRow);
 
@@ -46,7 +46,7 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       title: _('Server address'),
       subtitle: _('Hostname or IP where LMS is reachable'),
       settings,
-      key: 'server-address',
+      key: Constants.SettingsKey.SERVER_ADDRESS,
     });
     groupConnection.add(rowAddress);
 
@@ -54,7 +54,7 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       title: _('Username'),
       subtitle: _('Optional LMS username'),
       settings,
-      key: 'server-username',
+      key: Constants.SettingsKey.SERVER_USERNAME,
     });
     groupConnection.add(rowUsername);
 
@@ -62,7 +62,7 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       title: _('Password'),
       subtitle: _('Optional LMS password'),
       settings,
-      key: 'server-password',
+      key: Constants.SettingsKey.SERVER_PASSWORD,
       entryProps: {
         visibility: false,
         input_purpose: Gtk.InputPurpose.PASSWORD,
@@ -72,7 +72,7 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
 
     const rowPort = new Adw.ActionRow({title: _('Port')});
     const portEntry = new Gtk.Entry({
-      text: `${settings.get_int('server-port')}`,
+      text: `${settings.get_int(Constants.SettingsKey.SERVER_PORT)}`,
       input_purpose: Gtk.InputPurpose.NUMBER,
       valign: Gtk.Align.CENTER,
       width_chars: 6,
@@ -86,12 +86,12 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
         return;
       }
       const parsed = Number.parseInt(digits, 10);
-      settings.set_int('server-port', Math.min(65535, Math.max(1, parsed)));
+      settings.set_int(Constants.SettingsKey.SERVER_PORT, Math.min(65535, Math.max(1, parsed)));
     });
     portEntry.connect('notify::has-focus', () => {
       if (!portEntry.has_focus && portEntry.text.length === 0) {
         portEntry.text = '1';
-        settings.set_int('server-port', 1);
+        settings.set_int(Constants.SettingsKey.SERVER_PORT, 1);
       }
     });
     rowPort.add_suffix(portEntry);
@@ -110,39 +110,38 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
 
     const rowInterval = new Adw.ActionRow({title: _('Poll interval (seconds)')});
     const spinInterval = new Gtk.SpinButton({
-      adjustment: new Gtk.Adjustment({lower: 3, upper: 300, step_increment: 1, page_increment: 5, value: settings.get_int('poll-interval')}),
+      adjustment: new Gtk.Adjustment({lower: 3, upper: 300, step_increment: 1, page_increment: 5, value: settings.get_int(Constants.SettingsKey.POLL_INTERVAL)}),
       numeric: true,
       valign: Gtk.Align.CENTER,
     });
-    spinInterval.connect('value-changed', () => settings.set_int('poll-interval', spinInterval.get_value_as_int()));
-    settings.bind('poll-interval', spinInterval, 'value', Gio.SettingsBindFlags.DEFAULT);
+    spinInterval.connect('value-changed', () => settings.set_int(Constants.SettingsKey.POLL_INTERVAL, spinInterval.get_value_as_int()));
+    settings.bind(Constants.SettingsKey.POLL_INTERVAL, spinInterval, 'value', Gio.SettingsBindFlags.DEFAULT);
     rowInterval.add_suffix(spinInterval);
     rowInterval.activatable_widget = spinInterval;
     groupPlayer.add(rowInterval);
 
-    const shuffleOptions = [
-      {id: Constants.LMS_SHUFFLE_BY_SONG, label: _('Shuffle by song')},
-      {id: Constants.LMS_SHUFFLE_BY_ALBUM, label: _('Shuffle by album')},
-    ];
-    const shuffleRow = new Adw.ComboRow({
-      title: _('Shuffle mode'),
-      subtitle: _('Mode used when shuffle is enabled'),
-      model: Gtk.StringList.new(shuffleOptions.map(option => option.label)),
+    const shuffleRow = new Adw.ActionRow({
+      title: _('Shuffle by album'),
+      subtitle: _('When disabled, shuffle is done by track instead'),
     });
-    const updateShuffleSelection = () => {
-      const current = settings.get_int('shuffle-mode');
-      const index = shuffleOptions.findIndex(option => option.id === current);
-      shuffleRow.selected = index >= 0 ? index : 0;
-      if (index < 0) {
-        settings.set_int('shuffle-mode', shuffleOptions[0].id);
+    const shuffleSwitch = new Gtk.Switch({
+      active: settings.get_int(Constants.SettingsKey.SHUFFLE_MODE) === Constants.LmsShuffleMode.BY_ALBUM,
+      valign: Gtk.Align.CENTER,
+    });
+    shuffleSwitch.connect('notify::active', () => {
+      settings.set_int(
+        Constants.SettingsKey.SHUFFLE_MODE,
+        shuffleSwitch.active ? Constants.LmsShuffleMode.BY_ALBUM : Constants.LmsShuffleMode.BY_SONG
+      );
+    });
+    settings.connect(`changed::${Constants.SettingsKey.SHUFFLE_MODE}`, () => {
+      const active = settings.get_int(Constants.SettingsKey.SHUFFLE_MODE) === Constants.LmsShuffleMode.BY_ALBUM;
+      if (shuffleSwitch.active !== active) {
+        shuffleSwitch.active = active;
       }
-    };
-    updateShuffleSelection();
-    settings.connect('changed::shuffle-mode', updateShuffleSelection);
-    shuffleRow.connect('notify::selected', () => {
-      const option = shuffleOptions[shuffleRow.selected] || shuffleOptions[0];
-      settings.set_int('shuffle-mode', option.id);
     });
+    shuffleRow.add_suffix(shuffleSwitch);
+    shuffleRow.activatable_widget = shuffleSwitch;
     groupPlayer.add(shuffleRow);
 
     const session = new Soup.Session();
@@ -162,18 +161,18 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       playerOptions = options;
       playerRow.model = Gtk.StringList.new(options.map(option => option.label));
       playerRow.sensitive = options.length > 1;
-      const selectedId = settings.get_string('player-id');
+      const selectedId = settings.get_string(Constants.SettingsKey.PLAYER_ID);
       const index = options.findIndex(option => option.id === selectedId);
       playerRow.selected = index >= 0 ? index : 0;
       updatingPlayer = false;
     };
 
     const refreshPlayers = async () => {
-      const serverAddress = settings.get_string('server-address');
-      const serverPort = settings.get_int('server-port');
-      const serverScheme = settings.get_string('server-scheme');
-      const serverUsername = settings.get_string('server-username');
-      const serverPassword = settings.get_string('server-password');
+      const serverAddress = settings.get_string(Constants.SettingsKey.SERVER_ADDRESS);
+      const serverPort = settings.get_int(Constants.SettingsKey.SERVER_PORT);
+      const serverScheme = settings.get_string(Constants.SettingsKey.SERVER_SCHEME);
+      const serverUsername = settings.get_string(Constants.SettingsKey.SERVER_USERNAME);
+      const serverPassword = settings.get_string(Constants.SettingsKey.SERVER_PASSWORD);
       if (!serverAddress) {
         setPlayerStatus(_('Configure server first'));
         return;
@@ -215,25 +214,25 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       if (!selected) {
         return;
       }
-      settings.set_string('player-id', selected.id ?? '');
+      settings.set_string(Constants.SettingsKey.PLAYER_ID, selected.id ?? '');
     });
 
-    settings.connect('changed::player-id', () => {
+    settings.connect(`changed::${Constants.SettingsKey.PLAYER_ID}`, () => {
       if (!playerOptions.length) {
         return;
       }
       updatingPlayer = true;
-      const selectedId = settings.get_string('player-id');
+      const selectedId = settings.get_string(Constants.SettingsKey.PLAYER_ID);
       const index = playerOptions.findIndex(option => option.id === selectedId);
       playerRow.selected = index >= 0 ? index : 0;
       updatingPlayer = false;
     });
 
-    settings.connect('changed::server-address', refreshPlayers);
-    settings.connect('changed::server-port', refreshPlayers);
-    settings.connect('changed::server-scheme', refreshPlayers);
-    settings.connect('changed::server-username', refreshPlayers);
-    settings.connect('changed::server-password', refreshPlayers);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_ADDRESS}`, refreshPlayers);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_PORT}`, refreshPlayers);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_SCHEME}`, refreshPlayers);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_USERNAME}`, refreshPlayers);
+    settings.connect(`changed::${Constants.SettingsKey.SERVER_PASSWORD}`, refreshPlayers);
     refreshPlayers();
 
     // OpenUri handling is disabled for now; GNOME Shell's built-in media widget never calls it.
@@ -268,10 +267,10 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       subtitle: _('Lets MPRIS clients load artwork that requires LMS authentication'),
     });
     const artworkCredentialsSwitch = new Gtk.Switch({
-      active: settings.get_boolean('allow-artwork-credentials'),
+      active: settings.get_boolean(Constants.SettingsKey.ALLOW_ARTWORK_CREDENTIALS),
       valign: Gtk.Align.CENTER,
     });
-    settings.bind('allow-artwork-credentials', artworkCredentialsSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+    settings.bind(Constants.SettingsKey.ALLOW_ARTWORK_CREDENTIALS, artworkCredentialsSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
     artworkCredentialsRow.add_suffix(artworkCredentialsSwitch);
     artworkCredentialsRow.activatable_widget = artworkCredentialsSwitch;
     groupMpris.add(artworkCredentialsRow);
@@ -291,10 +290,10 @@ export default class LyrionMprisBridgePrefs extends ExtensionPreferences {
       subtitle: _('Log extra LMS and MPRIS details'),
     });
     const verboseSwitch = new Gtk.Switch({
-      active: settings.get_boolean('verbose-logging'),
+      active: settings.get_boolean(Constants.SettingsKey.VERBOSE_LOGGING),
       valign: Gtk.Align.CENTER,
     });
-    settings.bind('verbose-logging', verboseSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+    settings.bind(Constants.SettingsKey.VERBOSE_LOGGING, verboseSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
     verboseRow.add_suffix(verboseSwitch);
     verboseRow.activatable_widget = verboseSwitch;
     groupDiagnostics.add(verboseRow);
